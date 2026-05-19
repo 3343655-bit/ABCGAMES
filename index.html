@@ -2,8 +2,42 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ABC 小遊戲</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ABC 遊樂場</title>
+
+<!-- PWA: 加入主畫面後以全螢幕 App 模式啟動 -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ABC 遊樂場">
+<meta name="application-name" content="ABC 遊樂場">
+<meta name="theme-color" content="#fff9f0">
+<link rel="manifest" id="pwa-manifest">
+
+<script>
+// Inline manifest (no external file needed)
+const manifest = {
+  name: "ABC 遊樂場",
+  short_name: "ABC",
+  description: "學習、認識 26 個英文字母！",
+  start_url: ".",
+  display: "fullscreen",
+  orientation: "portrait",
+  background_color: "#fff9f0",
+  theme_color: "#ff6b6b",
+  icons: [
+    {
+      src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%23ff6b6b'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-size='300' font-family='serif' fill='white'>ABC</text></svg>`),
+      sizes: "512x512",
+      type: "image/svg+xml",
+      purpose: "any maskable"
+    }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+const url = URL.createObjectURL(blob);
+document.getElementById('pwa-manifest').href = url;
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
   /* ══════════════════════════════════════
@@ -27,8 +61,9 @@
     font-family:'Nunito',sans-serif;
     background:#fff9f0;
     min-height:100vh;
+    min-height:100dvh;
     display:flex; flex-direction:column; align-items:center;
-    padding:20px var(--pad) 80px;
+    padding:max(20px, env(safe-area-inset-top)) var(--pad) max(80px, env(safe-area-inset-bottom));
     background-image:
       radial-gradient(circle at 10% 20%,#ffe0e0 0%,transparent 40%),
       radial-gradient(circle at 90% 80%,#d0f0ff 0%,transparent 40%),
@@ -122,30 +157,21 @@
   ══════════════════════════════════════ */
   /* ── Fixed control bar ── */
   #music-btn{
-    position:fixed; bottom:20px; right:20px; z-index:100;
     background:white; border:3px solid #f5a623; border-radius:50%;
     width:48px; height:48px; font-size:1.3rem;
-    cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.15);
+    cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.12);
     transition:all .2s; display:flex; align-items:center; justify-content:center;
   }
   #music-btn:hover{background:#f5a623;transform:scale(1.1);}
   #music-btn.muted{border-color:#ccc;color:#ccc;}
 
+
+
   /* Eye-care controls */
   #eye-controls{
-    position:fixed; bottom:20px; right:76px; z-index:100;
     display:flex; gap:8px; align-items:center;
   }
-  .eye-btn{
-    background:white; border:3px solid #6bcb77; border-radius:50%;
-    width:48px; height:48px; font-size:1.2rem;
-    cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,.12);
-    transition:all .2s; display:flex; align-items:center; justify-content:center;
-  }
-  .eye-btn:hover{transform:scale(1.1);}
-  .eye-btn.active{color:white;}
-  #dark-btn.active{background:#4d96ff;border-color:#4d96ff;}
-  #warm-btn.active{background:#f5a623;border-color:#f5a623;}
+
 
   /* Warm filter overlay */
   #warm-overlay{
@@ -348,6 +374,34 @@
   .cm-fb{text-align:center;font-family:'Fredoka One',cursive;font-size:1rem;margin-top:14px;min-height:1.5rem;color:var(--accent3);}
 
   /* ══════════════════════════════════════
+     TOOL BAR (inline, below scorebar)
+  ══════════════════════════════════════ */
+  .toolbar{
+    display:flex; gap:10px; align-items:center; justify-content:center;
+    margin-bottom:18px; flex-wrap:wrap;
+  }
+  .tool-btn{
+    background:white; border-radius:50%;
+    width:48px; height:48px; padding:0; font-size:1.4rem;
+    cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.1);
+    transition:all .2s; display:flex; align-items:center; justify-content:center;
+    font-family:'Fredoka One',cursive; color:#888;
+    border:3px solid #e8e8e8;
+  }
+  .tool-btn:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.13);}
+  .tool-btn#dark-btn       {border-color:#4d96ff;}
+  .tool-btn#dark-btn.active{background:#4d96ff;border-color:#4d96ff;color:white;}
+  .tool-btn#warm-btn       {border-color:#f5a623;}
+  .tool-btn#warm-btn.active{background:#f5a623;border-color:#f5a623;color:white;}
+  .tool-btn#music-btn      {border-color:#f5a623;}
+  .tool-btn#music-btn.muted{border-color:#ccc;color:#ccc;}
+  .tool-btn#fullscreen-btn {border-color:var(--accent4);}
+  .tool-btn#fullscreen-btn:hover{background:var(--accent4);color:white;}
+
+  /* Eye-care controls (now inline) */
+  #eye-controls{ display:contents; }
+
+  /* ══════════════════════════════════════
      CONFETTI
   ══════════════════════════════════════ */
   .confetti-wrap{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:999;}
@@ -542,6 +596,15 @@
   <div class="score-chip">🔥 連勝 <span class="val" id="streak-val">0</span></div>
 </div>
 
+<div class="toolbar">
+  <div id="eye-controls">
+    <button class="tool-btn" id="dark-btn" onclick="toggleDark()" title="夜間模式">🌙</button>
+    <button class="tool-btn" id="warm-btn" onclick="toggleWarm()" title="護眼濾鏡">🟠</button>
+  </div>
+  <button class="tool-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="全螢幕">⛶</button>
+  <button class="tool-btn" id="music-btn" onclick="toggleMusic()" title="背景音樂">🎵</button>
+</div>
+
 <!-- LEARN -->
 <div id="learn-mode" class="section active">
   <div class="alpha-grid" id="alpha-grid"></div>
@@ -629,11 +692,6 @@
     <button class="break-dismiss" id="break-dismiss-btn" onclick="dismissBreak()">好了，繼續玩！▶</button>
   </div>
 </div>
-<div id="eye-controls">
-  <button class="eye-btn" id="dark-btn" onclick="toggleDark()" title="夜間模式">🌙</button>
-  <button class="eye-btn" id="warm-btn" onclick="toggleWarm()" title="暖色濾鏡">🟠</button>
-</div>
-<button id="music-btn" onclick="toggleMusic()" title="背景音樂">🎵</button>
 
 <script>
 const LETTERS=[
@@ -1252,6 +1310,27 @@ function restorePrefs(){
     if(localStorage.getItem('abc_warm')==='1') toggleWarm();
   }catch(e){}
 }
+
+/* ── FULLSCREEN ── */
+function toggleFullscreen(){
+  const btn = document.getElementById('fullscreen-btn');
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+    btn.textContent = '✕';
+    btn.title = '離開全螢幕';
+  } else {
+    document.exitFullscreen();
+    btn.textContent = '⛶';
+    btn.title = '全螢幕';
+  }
+}
+document.addEventListener('fullscreenchange', ()=>{
+  const btn = document.getElementById('fullscreen-btn');
+  if(!document.fullscreenElement){
+    btn.textContent = '⛶';
+    btn.title = '全螢幕';
+  }
+});
 
 /* ── INIT ── */
 buildLearn();
