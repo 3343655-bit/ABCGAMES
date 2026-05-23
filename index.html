@@ -1538,6 +1538,23 @@ document.addEventListener('click', function startMusic(){
   playBgMusic();
   document.removeEventListener('click', startMusic);
 }, {once:true});
+
+// Pause all sound when page hidden / screen off, resume when visible again
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){
+    // Page hidden: pause music and suspend audio context
+    BG_AUDIO.pause();
+    if(window._sfxAC && window._sfxAC.state === 'running'){
+      window._sfxAC.suspend();
+    }
+  } else {
+    // Page visible again: resume if not muted
+    if(window._sfxAC && window._sfxAC.state === 'suspended'){
+      window._sfxAC.resume();
+    }
+    if(!bgMuted) BG_AUDIO.play().catch(()=>{});
+  }
+});
 </script>
 </body>
 </html>
